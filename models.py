@@ -1,6 +1,6 @@
-from datetime import datetime
-from sqlalchemy.dialects.postgresql import ARRAY
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.dialects.postgresql import ARRAY
+from datetime import datetime
 
 db = SQLAlchemy()
 
