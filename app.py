@@ -8,6 +8,7 @@ import jwt
 import datetime
 import firebase_admin
 from firebase_admin import credentials, auth as firebase_auth
+import json
 
 from models import db, User
 from routes.skills import skills_bp
@@ -27,13 +28,24 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = os.getenv("SECRET_KEY")
 
 CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173"}}, supports_credentials=True)
+
 # Initialize extensions
 db.init_app(app)
 migrate = Migrate(app, db)
 
-# ✅ Firebase Admin SDK initialization
-cred = credentials.Certificate("firebase_admin.json")
-firebase_admin.initialize_app(cred)
+# ✅ Firebase Admin SDK initialization (using environment variable)
+firebase_cred_json = os.getenv("FIREBASE_CREDENTIALS_JSON")
+
+if firebase_cred_json:
+    try:
+        # Load Firebase credentials from the environment variable
+        cred = credentials.Certificate(json.loads(firebase_cred_json))
+        firebase_admin.initialize_app(cred)
+    except ValueError as e:
+        print("Error loading Firebase credentials from environment:", e)
+        raise Exception("Firebase credentials are invalid.")
+else:
+    print("Firebase credentials not found. Please set FIREBASE_CREDENTIALS_JSON environment variable.")
 
 # 🔐 Firebase Login + JWT Issuance
 @app.route("/api/login", methods=["POST"])
