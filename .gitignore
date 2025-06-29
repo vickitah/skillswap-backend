@@ -1,1 +1,36 @@
+# Node.js (React) & Backend (Flask) Specific
+
+# Node modules (for frontend)
+node_modules/
+
+# Python-specific files (for backend)
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+env/
 venv/
+
+# Flask environment and config files
+*.env
+*.flaskenv
+
+# Log files
+*.log
+logs/
+
+# Deployment files
+build/
+dist/
+
+# IDEs and OS-specific files
+.DS_Store
+.idea/
+.vscode/
+
+# Firebase config (secret file, if exists)
+firebase_admin.json
+
+# Other sensitive or build files
+*.swp
+*.bak
