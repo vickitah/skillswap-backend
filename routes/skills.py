@@ -1,16 +1,17 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, g
 from models import Skill, db
 from utils.auth import token_required
 
 skills_bp = Blueprint('skills', __name__)
 
-@skills_bp.route('', methods=['GET'])
+# 📥 GET /api/skills — searchable, filterable feed
+@skills_bp.route('/', methods=['GET'])
 def get_skills():
     query = Skill.query
 
     search = request.args.get('search', '')
     category = request.args.get('category', '')
-    tags = request.args.getlist('tags')  
+    tags = request.args.getlist('tags')  # e.g. ?tags[]=React&tags[]=Design
 
     if search:
         query = query.filter(
@@ -37,13 +38,20 @@ def get_skills():
             'tags': s.tags,
             'category': s.category,
             'rating': s.rating,
-            'created_at': s.created_at.isoformat()
+            'created_at': s.created_at.isoformat(),
+           'owner_email': s.user_email,
         } for s in skills
-    ])
+    ]), 200
 
-@skills_bp.route('', methods=['POST'])
+@skills_bp.route('/', methods=['POST'])
+@token_required
 def create_skill():
     data = request.get_json()
+    user_email = g.user.email
+
+    # 🪵 Debug logging
+    print("📥 Incoming skill post:", data)
+    print("🔐 Authenticated user:", user_email)
 
     new_skill = Skill(
         offering=data.get('offering'),
@@ -51,11 +59,14 @@ def create_skill():
         description=data.get('description'),
         tags=data.get('tags', []),
         category=data.get('category'),
-        rating=0
+        rating=0,
+        user_email=user_email  # ✅ correct field
     )
 
     db.session.add(new_skill)
     db.session.commit()
+
+    print(f"✅ New skill created with ID {new_skill.id}")
 
     return jsonify({
         'message': 'Skill posted successfully!',
