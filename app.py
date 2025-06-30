@@ -27,6 +27,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = os.getenv("SECRET_KEY")
 
+# CORS setup to allow access from specific origin
 CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173"}}, supports_credentials=True)
 
 # Initialize extensions
@@ -38,14 +39,17 @@ firebase_cred_json = os.getenv("FIREBASE_CREDENTIALS_JSON")
 
 if firebase_cred_json:
     try:
-        # Load Firebase credentials from the environment variable
-        cred = credentials.Certificate(json.loads(firebase_cred_json))
+        # Parse the JSON data from environment variable
+        firebase_cred_dict = json.loads(firebase_cred_json)
+        cred = credentials.Certificate(firebase_cred_dict)   # Use the dict for Firebase credentials
         firebase_admin.initialize_app(cred)
+        print("Firebase Admin initialized successfully.")
     except ValueError as e:
         print("Error loading Firebase credentials from environment:", e)
         raise Exception("Firebase credentials are invalid.")
 else:
     print("Firebase credentials not found. Please set FIREBASE_CREDENTIALS_JSON environment variable.")
+    raise Exception("Firebase credentials are missing.")
 
 # 🔐 Firebase Login + JWT Issuance
 @app.route("/api/login", methods=["POST"])
@@ -57,6 +61,7 @@ def login():
         return jsonify({"message": "Missing idToken"}), 400
 
     try:
+        # Verify Firebase token
         decoded_token = firebase_auth.verify_id_token(id_token)
         uid = decoded_token["uid"]
         email = decoded_token.get("email")
@@ -71,6 +76,7 @@ def login():
             db.session.add(user)
             db.session.commit()
 
+        # Generate JWT token
         payload = {
             "uid": uid,
             "email": email,

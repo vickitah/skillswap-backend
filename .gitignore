@@ -29,8 +29,12 @@ dist/
 .vscode/
 
 # Firebase config (secret file, if exists)
-firebase_admin.json
+firebase_credentials.json
 
 # Other sensitive or build files
 *.swp
 *.bak
+
+.env
+firebase-credentials.json
+
