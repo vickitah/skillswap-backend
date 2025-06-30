@@ -5,13 +5,13 @@ from utils.auth import token_required
 skills_bp = Blueprint('skills', __name__)
 
 # 📥 GET /api/skills — searchable, filterable feed
-@skills_bp.route('/', methods=['GET'])
+@skills_bp.route('', methods=['GET'])  # ✅ removed trailing slash
 def get_skills():
     query = Skill.query
 
     search = request.args.get('search', '')
     category = request.args.get('category', '')
-    tags = request.args.getlist('tags')  # e.g. ?tags[]=React&tags[]=Design
+    tags = request.args.getlist('tags')  # e.g. ?tags=React&tags=Design
 
     if search:
         query = query.filter(
@@ -39,11 +39,12 @@ def get_skills():
             'category': s.category,
             'rating': s.rating,
             'created_at': s.created_at.isoformat(),
-           'owner_email': s.user_email,
+            'owner_email': s.user_email,
         } for s in skills
     ]), 200
 
-@skills_bp.route('/', methods=['POST'])
+# 📝 POST /api/skills — create a new exchange (requires auth)
+@skills_bp.route('', methods=['POST'])  # ✅ removed trailing slash
 @token_required
 def create_skill():
     data = request.get_json()
@@ -53,22 +54,27 @@ def create_skill():
     print("📥 Incoming skill post:", data)
     print("🔐 Authenticated user:", user_email)
 
-    new_skill = Skill(
-        offering=data.get('offering'),
-        wanting=data.get('wanting'),
-        description=data.get('description'),
-        tags=data.get('tags', []),
-        category=data.get('category'),
-        rating=0,
-        user_email=user_email  # ✅ correct field
-    )
+    try:
+        new_skill = Skill(
+            offering=data.get('offering'),
+            wanting=data.get('wanting'),
+            description=data.get('description'),
+            tags=data.get('tags', []),
+            category=data.get('category'),
+            rating=0,
+            user_email=user_email
+        )
 
-    db.session.add(new_skill)
-    db.session.commit()
+        db.session.add(new_skill)
+        db.session.commit()
 
-    print(f"✅ New skill created with ID {new_skill.id}")
+        print(f"✅ New skill created with ID {new_skill.id}")
 
-    return jsonify({
-        'message': 'Skill posted successfully!',
-        'id': new_skill.id
-    }), 201
+        return jsonify({
+            'message': 'Skill posted successfully!',
+            'id': new_skill.id
+        }), 201
+
+    except Exception as e:
+        print("❌ Error creating skill:", e)
+        return jsonify({'error': 'Failed to create skill'}), 500
