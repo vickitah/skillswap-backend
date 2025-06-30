@@ -3,7 +3,8 @@ from models import Skill, db
 from utils.auth import token_required
 
 # ✅ Proper blueprint setup
-skills_bp = Blueprint('skills', __name__, url_prefix='/api/skills', strict_slashes=False)
+skills_bp = Blueprint('skills', __name__, url_prefix='/api/skills')
+
 
 # 📥 GET /api/skills — searchable, filterable feed
 @skills_bp.route('/', methods=['GET'])
