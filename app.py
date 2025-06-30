@@ -28,7 +28,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = os.getenv("SECRET_KEY")
 
 # CORS setup to allow access from specific origin
-CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173"}}, supports_credentials=True)
+CORS(app, supports_credentials=True, origins=["https://skillswap-frontend-henna.vercel.app"])
 
 # Initialize extensions
 db.init_app(app)
@@ -103,6 +103,11 @@ def protected():
         }
     }), 200
 
+# Define Root Route
+@app.route('/')
+def home():
+    return "Welcome to SkillSwap API! 🚀"
+
 # 🔗 Register Blueprints (each already prefixed with `/api`)
 app.register_blueprint(skills_bp, url_prefix='/api/skills')
 app.register_blueprint(messages_bp, url_prefix='/api/messages')
@@ -111,4 +116,5 @@ app.register_blueprint(schedule_bp, url_prefix='/api/sessions')  # For schedulin
 
 # 🚀 Run the Flask app
 if __name__ == "__main__":
-    app.run(debug=True)
+    # Running with Gunicorn on Render, disabling Flask debug mode
+    app.run(debug=False, host='0.0.0.0', port=int(os.getenv("PORT", 5000)))
