@@ -3,6 +3,7 @@ from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from dotenv import load_dotenv
+from werkzeug.middleware.proxy_fix import ProxyFix  # ✅ Added
 import os
 import jwt
 import datetime
@@ -25,17 +26,19 @@ load_dotenv()
 
 app = Flask(__name__)
 
+# ✅ Fix HTTPS redirect breaking CORS on Render
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+
 # Config
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = os.getenv("SECRET_KEY")
 
-# CORS setup to allow access from frontend
+# ✅ Proper CORS setup for Vercel frontend
 CORS(app,
      supports_credentials=True,
      origins=["https://skillswap-frontend-henna.vercel.app"],
      allow_headers=["Content-Type", "Authorization"])
-
 
 # Initialize extensions
 db.init_app(app)
