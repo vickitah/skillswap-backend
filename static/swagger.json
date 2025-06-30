@@ -1,0 +1,207 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "SkillSwap API",
+    "version": "1.0.0",
+    "description": "Swagger documentation for the SkillSwap backend API"
+  },
+  "servers": [
+    {
+      "url": "https://skillswap-backend-qky7.onrender.com"
+    }
+  ],
+  "paths": {
+    "/api/login": {
+      "post": {
+        "summary": "Authenticate user with Firebase ID token and return JWT",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "example": "eyJhbGciOiJSUzI1NiIsImtpZCI6..."
+                  }
+                },
+                "required": ["idToken"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Returns JWT token and user info"
+          },
+          "400": {
+            "description": "Missing or invalid token"
+          },
+          "401": {
+            "description": "Unauthorized access"
+          }
+        }
+      }
+    },
+    "/api/skills": {
+      "get": {
+        "summary": "Fetch all or filtered skill listings",
+        "parameters": [
+          { "in": "query", "name": "search", "schema": { "type": "string" } },
+          { "in": "query", "name": "category", "schema": { "type": "string" } },
+          { "in": "query", "name": "tags", "schema": { "type": "array", "items": { "type": "string" } }, "style": "form", "explode": true }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of skills"
+          }
+        }
+      },
+      "post": {
+        "summary": "Post a new skill exchange offer",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "offering": { "type": "string" },
+                  "wanting": { "type": "string" },
+                  "description": { "type": "string" },
+                  "category": { "type": "string" },
+                  "tags": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                  }
+                },
+                "required": ["offering", "wanting", "description"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Skill successfully created" },
+          "400": { "description": "Invalid input" }
+        }
+      }
+    },
+    "/api/messages": {
+      "get": {
+        "summary": "Get messages for authenticated user",
+        "responses": {
+          "200": {
+            "description": "List of messages"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "summary": "Send a new message",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "receiver_email": { "type": "string" },
+                  "content": { "type": "string" }
+                },
+                "required": ["receiver_email", "content"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Message sent" },
+          "400": { "description": "Bad request" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/api/profile/{username}": {
+      "get": {
+        "summary": "Fetch user profile by username",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "username",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Profile data returned" },
+          "404": { "description": "User not found" }
+        }
+      },
+      "put": {
+        "summary": "Update user profile",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "username",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "tagline": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Profile updated" },
+          "400": { "description": "Invalid data" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/api/sessions": {
+      "get": {
+        "summary": "Get sessions for authenticated user",
+        "responses": {
+          "200": { "description": "List of sessions" },
+          "401": { "description": "Unauthorized" }
+        }
+      },
+      "post": {
+        "summary": "Schedule a new session",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "recipient_id": { "type": "integer" },
+                  "scheduled_time": { "type": "string", "format": "date-time" },
+                  "message": { "type": "string" }
+                },
+                "required": ["recipient_id", "scheduled_time"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Session scheduled" },
+          "400": { "description": "Bad request" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    }
+  }
+}

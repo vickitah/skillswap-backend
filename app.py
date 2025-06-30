@@ -40,8 +40,7 @@ CORS(app,
      origins=["https://skillswap-frontend-henna.vercel.app"],
      allow_headers=["Content-Type", "Authorization"],
      expose_headers=["Content-Type", "Authorization"],
-     methods=["GET", "POST", "OPTIONS"],
-     debug=True)
+     methods=["GET", "POST", "OPTIONS"])
 
 # ✅ CORS per blueprint (fallback protection)
 for bp in [skills_bp, messages_bp, profile_bp, schedule_bp]:
