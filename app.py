@@ -3,7 +3,7 @@ from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from dotenv import load_dotenv
-from werkzeug.middleware.proxy_fix import ProxyFix  # ✅ Added
+from werkzeug.middleware.proxy_fix import ProxyFix
 import os
 import jwt
 import datetime
@@ -34,11 +34,23 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = os.getenv("SECRET_KEY")
 
-# ✅ Proper CORS setup for Vercel frontend
+# ✅ Proper global CORS setup for Vercel frontend
 CORS(app,
      supports_credentials=True,
      origins=["https://skillswap-frontend-henna.vercel.app"],
-     allow_headers=["Content-Type", "Authorization"])
+     allow_headers=["Content-Type", "Authorization"],
+     expose_headers=["Content-Type", "Authorization"],
+     methods=["GET", "POST", "OPTIONS"],
+     debug=True)
+
+# ✅ CORS per blueprint (fallback protection)
+for bp in [skills_bp, messages_bp, profile_bp, schedule_bp]:
+    CORS(bp,
+         supports_credentials=True,
+         origins=["https://skillswap-frontend-henna.vercel.app"],
+         allow_headers=["Content-Type", "Authorization"],
+         expose_headers=["Content-Type", "Authorization"],
+         methods=["GET", "POST", "OPTIONS"])
 
 # Initialize extensions
 db.init_app(app)
@@ -115,9 +127,14 @@ def protected():
         }
     }), 200
 
+# ✅ Debug CORS test route
+@app.route("/api/cors-test", methods=["GET", "OPTIONS"])
+def cors_test():
+    return jsonify({"message": "CORS test success ✅"}), 200
+
 # 📄 Swagger UI setup
 SWAGGER_URL = '/docs'
-API_URL = '/static/swagger.json'  # This file should exist in a 'static/' folder
+API_URL = '/static/swagger.json'
 
 swaggerui_blueprint = get_swaggerui_blueprint(
     SWAGGER_URL,
