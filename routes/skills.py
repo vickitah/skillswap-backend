@@ -6,7 +6,7 @@ from utils.auth import token_required
 skills_bp = Blueprint('skills', __name__, url_prefix='/api/skills', strict_slashes=False)
 
 # 📥 GET /api/skills — searchable, filterable feed
-@skills_bp.route('', methods=['GET'])
+@skills_bp.route('/', methods=['GET'])
 def get_skills():
     query = Skill.query
 
@@ -45,7 +45,7 @@ def get_skills():
     ]), 200
 
 # 📝 POST /api/skills — create a new exchange (requires auth)
-@skills_bp.route('', methods=['POST'])
+@skills_bp.route('/', methods=['POST'])
 @token_required
 def create_skill():
     data = request.get_json()
