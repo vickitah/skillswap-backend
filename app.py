@@ -31,7 +31,11 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = os.getenv("SECRET_KEY")
 
 # CORS setup to allow access from frontend
-CORS(app, supports_credentials=True, origins=["https://skillswap-frontend-henna.vercel.app"])
+CORS(app,
+     supports_credentials=True,
+     origins=["https://skillswap-frontend-henna.vercel.app"],
+     allow_headers=["Content-Type", "Authorization"])
+
 
 # Initialize extensions
 db.init_app(app)
