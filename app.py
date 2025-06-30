@@ -34,22 +34,26 @@ CORS(app, supports_credentials=True, origins=["https://skillswap-frontend-henna.
 db.init_app(app)
 migrate = Migrate(app, db)
 
-# ✅ Firebase Admin SDK initialization (using environment variable)
-firebase_cred_json = os.getenv("FIREBASE_CREDENTIALS_JSON")
-
-if firebase_cred_json:
-    try:
-        # Parse the JSON data from environment variable
-        firebase_cred_dict = json.loads(firebase_cred_json)
-        cred = credentials.Certificate(firebase_cred_dict)   # Use the dict for Firebase credentials
-        firebase_admin.initialize_app(cred)
-        print("Firebase Admin initialized successfully.")
-    except ValueError as e:
-        print("Error loading Firebase credentials from environment:", e)
-        raise Exception("Firebase credentials are invalid.")
+# ✅ Firebase Admin SDK initialization (using service account file if available)
+firebase_cred_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+if firebase_cred_path and os.path.exists(firebase_cred_path):
+    cred = credentials.Certificate(firebase_cred_path)
+    firebase_admin.initialize_app(cred)
+    print("✅ Firebase Admin initialized with service account file.")
 else:
-    print("Firebase credentials not found. Please set FIREBASE_CREDENTIALS_JSON environment variable.")
-    raise Exception("Firebase credentials are missing.")
+    firebase_cred_json = os.getenv("FIREBASE_CREDENTIALS_JSON")
+    if firebase_cred_json:
+        try:
+            firebase_cred_dict = json.loads(firebase_cred_json)
+            cred = credentials.Certificate(firebase_cred_dict)
+            firebase_admin.initialize_app(cred)
+            print("✅ Firebase Admin initialized with JSON credentials.")
+        except ValueError as e:
+            print("❌ Error loading Firebase credentials from JSON:", e)
+            raise Exception("Firebase credentials are invalid.")
+    else:
+        print("❌ Firebase credentials not found.")
+        raise Exception("Firebase credentials are missing.")
 
 # 🔐 Firebase Login + JWT Issuance
 @app.route("/api/login", methods=["POST"])
@@ -65,6 +69,7 @@ def login():
         decoded_token = firebase_auth.verify_id_token(id_token)
         uid = decoded_token["uid"]
         email = decoded_token.get("email")
+        name = decoded_token.get("name") or email.split("@")[0]
 
         if not email:
             return jsonify({"message": "Invalid Firebase token"}), 400
@@ -72,7 +77,7 @@ def login():
         # Create or find user
         user = User.query.filter_by(email=email).first()
         if not user:
-            user = User(email=email, name=email.split("@")[0])
+            user = User(email=email, name=name)
             db.session.add(user)
             db.session.commit()
 
@@ -84,10 +89,10 @@ def login():
         }
 
         token = jwt.encode(payload, app.secret_key, algorithm="HS256")
-        return jsonify({"token": token}), 200
+        return jsonify({"token": token, "name": user.name, "email": user.email}), 200
 
     except Exception as e:
-        print("Firebase verification error:", e)
+        print("❌ Firebase verification error:", e)
         return jsonify({"message": "Invalid ID token"}), 401
 
 # 🔐 Test protected route
