@@ -17,6 +17,9 @@ from routes.messages import messages_bp
 from routes.session import schedule_bp
 from utils.auth import token_required
 
+# ✅ Swagger UI
+from flask_swagger_ui import get_swaggerui_blueprint
+
 # Load environment variables
 load_dotenv()
 
@@ -27,14 +30,14 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = os.getenv("SECRET_KEY")
 
-# CORS setup to allow access from specific origin
+# CORS setup to allow access from frontend
 CORS(app, supports_credentials=True, origins=["https://skillswap-frontend-henna.vercel.app"])
 
 # Initialize extensions
 db.init_app(app)
 migrate = Migrate(app, db)
 
-# ✅ Firebase Admin SDK initialization (using service account file if available)
+# ✅ Firebase Admin SDK initialization
 firebase_cred_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 if firebase_cred_path and os.path.exists(firebase_cred_path):
     cred = credentials.Certificate(firebase_cred_path)
@@ -65,7 +68,6 @@ def login():
         return jsonify({"message": "Missing idToken"}), 400
 
     try:
-        # Verify Firebase token
         decoded_token = firebase_auth.verify_id_token(id_token)
         uid = decoded_token["uid"]
         email = decoded_token.get("email")
@@ -74,14 +76,12 @@ def login():
         if not email:
             return jsonify({"message": "Invalid Firebase token"}), 400
 
-        # Create or find user
         user = User.query.filter_by(email=email).first()
         if not user:
             user = User(email=email, name=name)
             db.session.add(user)
             db.session.commit()
 
-        # Generate JWT token
         payload = {
             "uid": uid,
             "email": email,
@@ -108,18 +108,28 @@ def protected():
         }
     }), 200
 
-# Define Root Route
+# 📄 Swagger UI setup
+SWAGGER_URL = '/docs'
+API_URL = '/static/swagger.json'  # This file should exist in a 'static/' folder
+
+swaggerui_blueprint = get_swaggerui_blueprint(
+    SWAGGER_URL,
+    API_URL,
+    config={"app_name": "SkillSwap API Docs"}
+)
+app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
+
+# Root route
 @app.route('/')
 def home():
     return "Welcome to SkillSwap API! 🚀"
 
-# 🔗 Register Blueprints (each already prefixed with `/api`)
+# Register routes
 app.register_blueprint(skills_bp, url_prefix='/api/skills')
 app.register_blueprint(messages_bp, url_prefix='/api/messages')
 app.register_blueprint(profile_bp, url_prefix='/api/profile')
-app.register_blueprint(schedule_bp, url_prefix='/api/sessions')  # For scheduling
+app.register_blueprint(schedule_bp, url_prefix='/api/sessions')
 
-# 🚀 Run the Flask app
+# Run app
 if __name__ == "__main__":
-    # Running with Gunicorn on Render, disabling Flask debug mode
     app.run(debug=False, host='0.0.0.0', port=int(os.getenv("PORT", 5000)))
