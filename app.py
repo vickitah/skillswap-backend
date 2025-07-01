@@ -27,10 +27,14 @@ load_dotenv()
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
-# ✅ Prevent CORS preflight redirect (Render fix)
+# ✅ FIX: Prevent CORS redirect but skip OPTIONS (preflight)
 @app.before_request
 def enforce_https_in_production():
-    if not request.is_secure and os.getenv("FLASK_ENV") == "production":
+    if (
+        not request.is_secure and
+        os.getenv("FLASK_ENV") == "production" and
+        request.method != "OPTIONS"
+    ):
         return jsonify({"message": "Redirects are not allowed for CORS preflight"}), 400
 
 # ✅ Flask Config
