@@ -15,7 +15,7 @@ def send_message():
     sender_email = g.user.email
     receiver_email = data.get("receiver_email")
     content = data.get("content")
-    message_type = data.get("type", "message")  # 🔁 default = 'message'
+    # Removed message_type to avoid TypeError
 
     if not receiver_email or not content:
         return jsonify({"error": "Missing fields"}), 400
@@ -23,8 +23,8 @@ def send_message():
     new_message = Message(
         sender_email=sender_email,
         receiver_email=receiver_email,
-        content=content,
-        type=message_type  # 👈 This is what makes it a swap_request or not
+        content=content
+        # Removed type=message_type
     )
 
     db.session.add(new_message)
@@ -50,7 +50,7 @@ def get_messages():
             "sender": m.sender_email,
             "receiver": m.receiver_email,
             "content": m.content,
-            "type": m.type,  # 👈 Include type
+            # Removed m.type
             "timestamp": m.timestamp.isoformat()
         } for m in messages
     ]), 200
