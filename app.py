@@ -21,20 +21,24 @@ from utils.auth import token_required
 # ✅ Swagger UI
 from flask_swagger_ui import get_swaggerui_blueprint
 
-# Load environment variables
+# ✅ Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
-
-# ✅ Fix HTTPS redirect breaking CORS on Render
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
-# Config
+# ✅ Prevent CORS preflight redirect (Render fix)
+@app.before_request
+def enforce_https_in_production():
+    if not request.is_secure and os.getenv("FLASK_ENV") == "production":
+        return jsonify({"message": "Redirects are not allowed for CORS preflight"}), 400
+
+# ✅ Flask Config
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = os.getenv("SECRET_KEY")
 
-# ✅ Proper global CORS setup for Vercel frontend
+# ✅ Global CORS config for Vercel
 CORS(app,
      supports_credentials=True,
      origins=["https://skillswap-frontend-henna.vercel.app"],
@@ -42,7 +46,7 @@ CORS(app,
      expose_headers=["Content-Type", "Authorization"],
      methods=["GET", "POST", "OPTIONS"])
 
-# ✅ CORS per blueprint (fallback protection)
+# ✅ CORS fallback per blueprint
 for bp in [skills_bp, messages_bp, profile_bp, schedule_bp]:
     CORS(bp,
          supports_credentials=True,
@@ -51,7 +55,7 @@ for bp in [skills_bp, messages_bp, profile_bp, schedule_bp]:
          expose_headers=["Content-Type", "Authorization"],
          methods=["GET", "POST", "OPTIONS"])
 
-# Initialize extensions
+# ✅ Initialize extensions
 db.init_app(app)
 migrate = Migrate(app, db)
 
@@ -142,17 +146,17 @@ swaggerui_blueprint = get_swaggerui_blueprint(
 )
 app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
 
-# Root route
+# 🌐 Root route
 @app.route('/')
 def home():
     return "Welcome to SkillSwap API! 🚀"
 
-# Register routes
+# 🔁 Register blueprints
 app.register_blueprint(skills_bp, url_prefix='/api/skills')
 app.register_blueprint(messages_bp, url_prefix='/api/messages')
 app.register_blueprint(profile_bp, url_prefix='/api/profile')
 app.register_blueprint(schedule_bp, url_prefix='/api/sessions')
 
-# Run app
+# 🚀 Run the app
 if __name__ == "__main__":
     app.run(debug=False, host='0.0.0.0', port=int(os.getenv("PORT", 5000)))
