@@ -71,6 +71,7 @@ class Message(db.Model):
     sender_email = db.Column(db.String(120), nullable=False)
     receiver_email = db.Column(db.String(120), nullable=False)
     content = db.Column(db.Text, nullable=False)
+    type = db.Column(db.String(50), default='message')  
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Session(db.Model):
