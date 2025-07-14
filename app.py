@@ -30,12 +30,11 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 # ✅ FIX: Prevent CORS redirect but skip OPTIONS (preflight)
 @app.before_request
 def enforce_https_in_production():
-    if (
-        not request.is_secure and
-        os.getenv("FLASK_ENV") == "production" and
-        request.method != "OPTIONS"
-    ):
-        return jsonify({"message": "Redirects are not allowed for CORS preflight"}), 400
+    if request.method == "OPTIONS":
+        return '', 200  # ✅ Always allow preflight
+
+    if not request.is_secure and os.getenv("FLASK_ENV") == "production":
+        return jsonify({"message": "Use HTTPS"}), 400
 
 # ✅ Flask Config
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
