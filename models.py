@@ -64,6 +64,7 @@ class Skill(db.Model):
     rating = db.Column(db.Integer, default=0)
 
 
+
 class Message(db.Model):
     __tablename__ = 'messages'
 
@@ -73,7 +74,6 @@ class Message(db.Model):
     content = db.Column(db.Text, nullable=False)
     type = db.Column(db.String(50), default='message')  
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-
 class Session(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     requester_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)

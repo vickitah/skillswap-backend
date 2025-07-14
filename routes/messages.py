@@ -15,7 +15,7 @@ def send_message():
     sender_email = g.user.email
     receiver_email = data.get("receiver_email")
     content = data.get("content")
-    # Removed message_type to avoid TypeError
+    message_type = data.get("type", "message")  # ✅ Support type like "swap"
 
     if not receiver_email or not content:
         return jsonify({"error": "Missing fields"}), 400
@@ -23,14 +23,18 @@ def send_message():
     new_message = Message(
         sender_email=sender_email,
         receiver_email=receiver_email,
-        content=content
-        # Removed type=message_type
+        content=content,
+        type=message_type  # ✅ Save type into DB
     )
 
     db.session.add(new_message)
     db.session.commit()
-    
-    return jsonify({"message": "Message sent", "id": new_message.id}), 201
+
+    return jsonify({
+        "message": "Message sent",
+        "id": new_message.id,
+        "type": new_message.type
+    }), 201
 
 # 🔁 GET: Get all messages for current user
 @messages_bp.route('/', methods=['GET', 'OPTIONS'])
@@ -50,7 +54,7 @@ def get_messages():
             "sender": m.sender_email,
             "receiver": m.receiver_email,
             "content": m.content,
-            # Removed m.type
+            "type": m.type,  # ✅ Include type in response
             "timestamp": m.timestamp.isoformat()
         } for m in messages
     ]), 200
