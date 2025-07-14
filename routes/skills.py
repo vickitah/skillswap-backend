@@ -5,7 +5,6 @@ from utils.auth import token_required
 # ✅ Proper blueprint setup
 skills_bp = Blueprint('skills', __name__)
 
-
 # 📥 GET /api/skills — searchable, filterable feed
 @skills_bp.route('/', methods=['GET'])
 def get_skills():
@@ -46,9 +45,13 @@ def get_skills():
     ]), 200
 
 # 📝 POST /api/skills — create a new exchange (requires auth)
-@skills_bp.route('/', methods=['POST'])
+@skills_bp.route('/', methods=['POST', 'OPTIONS'])  # ✅ Allow OPTIONS for CORS
 @token_required
 def create_skill():
+    if request.method == 'OPTIONS':
+        # ✅ CORS preflight response
+        return '', 200
+
     data = request.get_json()
     user_email = g.user.email
 
