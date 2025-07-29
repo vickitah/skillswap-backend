@@ -1,0 +1,114 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Modern Portfolio Design System - Hussein Osman
+Light blue theme with bright blue accents for a professional developer portfolio
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Light Blue Portfolio Theme */
+    --background: 210 30% 96%;
+    --foreground: 220 20% 15%;
+
+    --card: 210 20% 98%;
+    --card-foreground: 220 20% 15%;
+
+    --popover: 210 20% 98%;
+    --popover-foreground: 220 20% 15%;
+
+    /* Bright Blue Primary */
+    --primary: 214 84% 56%;
+    --primary-foreground: 210 30% 96%;
+    
+    /* Light Blue Accent */
+    --accent: 200 95% 75%;
+    --accent-foreground: 220 20% 15%;
+
+    /* Secondary - Light blue cards */
+    --secondary: 210 25% 92%;
+    --secondary-foreground: 220 20% 15%;
+
+    /* Muted - Subtle text and borders */
+    --muted: 210 20% 88%;
+    --muted-foreground: 220 15% 45%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 30% 96%;
+
+    /* Borders and inputs - Light blue */
+    --border: 210 15% 85%;
+    --input: 210 20% 95%;
+    --ring: 214 84% 56%;
+
+    /* Portfolio-specific gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(210 30% 96%), hsl(210 25% 92%));
+    --gradient-card: linear-gradient(145deg, hsl(210 20% 98%), hsl(210 25% 95%));
+    --gradient-accent: linear-gradient(45deg, hsl(214 84% 56%), hsl(200 95% 75%));
+    
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --shadow-glow: 0 0 30px hsl(214 84% 56% / 0.3);
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+}
+
+@layer components {
+  /* Portfolio specific animations and components */
+  .hero-gradient {
+    background: var(--gradient-hero);
+  }
+
+  .card-gradient {
+    background: var(--gradient-card);
+  }
+
+  .accent-gradient {
+    background: var(--gradient-accent);
+  }
+
+  .glow-effect {
+    box-shadow: var(--shadow-glow);
+  }
+
+  .smooth-transition {
+    transition: var(--transition-smooth);
+  }
+
+  .tech-icon {
+    @apply smooth-transition hover:scale-110 hover:text-primary;
+  }
+
+  .project-card {
+    @apply smooth-transition hover:scale-105 hover:glow-effect;
+  }
+}
